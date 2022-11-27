@@ -1,15 +1,11 @@
-
 import Image from "next/legacy/image"
 
+import Link from "next/link"
 import { useKeenSlider } from 'keen-slider/react'
 
 import { HomeContainer, Product } from "../styles/pages/home"
 import { stripe } from "../lib/stripe"
 import { GetServerSideProps } from "next"
-
-import camiseta1 from '../assets/camisetas/1.png'
-import camiseta2 from '../assets/camisetas/2.png'
-import camiseta3 from '../assets/camisetas/3.png'
 
 import 'keen-slider/keen-slider.min.css'
 import Stripe from "stripe"
@@ -34,14 +30,15 @@ export default function Home({ products }: HomeProps) {
     <HomeContainer ref={sliderRef} className="keen-slider">
       {products.map(product => {
         return (
-          <Product key={product.id} className="keen-slider__slide">
-            <Image src={product.imageUrl} width={520} height={480} alt="" />
-            <footer>
-              <strong>{product.name}</strong>
-              <span>R$ {product.price}</span>
-            </footer>
-          </Product>
-
+          <Link href={`/product/${product.id}`} key={product.id} >
+            <Product className="keen-slider__slide">
+              <Image src={product.imageUrl} width={520} height={480} alt="" />
+              <footer>
+                <strong>{product.name}</strong>
+                <span>R$ {product.price}</span>
+              </footer>
+            </Product>
+          </Link>
         )
       })}
     </HomeContainer>
@@ -67,7 +64,6 @@ export const getServerSideProps: GetServerSideProps = async () => {
     }
   })
 
-  console.log(response.data)
   return {
     props: {
       products
