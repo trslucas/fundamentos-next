@@ -1,34 +1,73 @@
-import { GetStaticProps } from 'next'
+import { GetStaticPaths, GetStaticProps } from 'next'
+import Image from 'next/legacy/image'
 import { useRouter } from 'next/router'
+import Stripe from 'stripe'
+import { stripe } from '../../lib/stripe'
 import { ImageContainer, ProductContainer, ProductDetails } from '../../styles/pages/product'
 
-export default function Product() {
+interface ProductProps {
+    product: {
+        id: string;
+        name: string;
+        imageUrl: string;
+        price: string;
+        description: string;
+    }
+}
 
-    const { query } = useRouter()
+export default function Product({ product }: ProductProps) {
+    const { isFallback } = useRouter()
+    if (isFallback) {
+        return <p>Loading...</p>
+    }
     return (
         <ProductContainer>
             <ImageContainer>
-
+                <Image src={product.imageUrl} width={520} height={460} alt="" />
             </ImageContainer>
             <ProductDetails>
-                <h1>Camiseta X</h1>
-                <span>R$ 79,00</span>
-                <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Sequi obcaecati accusamus neque voluptas explicabo itaque eius! Iure nobis assumenda fugiat veritatis voluptas illo ea exercitationem. Maxime eos mollitia quod consequuntur.</p>
-                <button>
-                    Comprar agora
-                </button>
+                <h1>{product.name}</h1>
+                <span>{product.price}</span>
+                <p>{product.description}</p>
+
+                <button>Comprar agora</button>
             </ProductDetails>
         </ProductContainer>
     )
 }
 
-export const getStaticProps: GetStaticProps = async () => {
-    
+export const getStaticPaths: GetStaticPaths = async () => {
+    return {
+        paths: [
+            { params: { id: 'prod_MisZ1x6pfl7fzr' } }
+        ],
+        fallback: true
+    }
+}
+
+export const getStaticProps: GetStaticProps<any, { id: string }> = async ({ params }) => {
+    const productId = params.id;
+
+    const product = await stripe.products.retrieve(productId, {
+        expand: ['default_price'],
+    });
+
+    const price = product.default_price as Stripe.Price
+
     return {
         props: {
+            product: {
+                id: product.id,
+                name: product.name,
+                imageUrl: product.images[0],
+                price: new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                }).format(price.unit_amount / 100),
+                descpription: product.description
 
+            }
         },
         revalidate: 60 * 60 * 1
     }
-
 }
