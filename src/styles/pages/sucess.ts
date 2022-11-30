@@ -36,7 +36,7 @@ export const SuccessContainer = styled("main", {
   },
 });
 
-export const ImageContainer = styled("div", {
+export const SucessImageContainer = styled("div", {
   width: "100%",
   maxWidth: 130,
   height: 145,
